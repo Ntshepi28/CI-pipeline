@@ -16,18 +16,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Set up .NET Core SDK
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '8.x'
           include-prerelease: true
 
+      # Set up Node.js 16
+      - name: Set up Node.js 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      # Install npm dependencies (if required)
+      - name: Install npm dependencies
+        run: |
+          npm install
+
+      # Build with .NET
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
+      # Publish .NET app
       - name: dotnet publish
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
+      # Upload artifact for deployment job
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
         with:
@@ -42,11 +57,13 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
+      # Download artifact from build job
       - name: Download artifact from build job
         uses: actions/download-artifact@v3
         with:
           name: .net-app
 
+      # Deploy to Azure Web App
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
